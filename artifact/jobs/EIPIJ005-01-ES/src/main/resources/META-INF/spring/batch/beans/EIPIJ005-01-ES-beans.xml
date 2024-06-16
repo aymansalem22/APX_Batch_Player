@@ -149,7 +149,7 @@
 
 	<!--step 2 playerSelect -->
 
-	<bean id="playerDaoo" class="com.bbva.eipi.batch.repository.PlayerDao">
+	<bean id="playerDaoo" class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
 		<property name="dataSource" ref="jndiDatasource" />
 	</bean>
 
