@@ -21,6 +21,10 @@ public class PlayerItemProcessDB implements ItemProcessor<PlayerDTO, PlayerProDT
     public PlayerItemProcessDB() {
     }
 
+    public PlayerItemProcessDB(PlayerDao playerDao) {
+        this.playerDao = playerDao;
+    }
+
     private PlayerDao playerDao;
 
     RestTemplate restTemplate = new RestTemplate();
