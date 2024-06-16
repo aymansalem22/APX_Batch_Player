@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/tx 
+						http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	<!-- EIPIJ005-01-ES-beans.xml -->
+
+
+
+	<!-- Set to the required transaction manager -->
+	<bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager" />
+
+	<bean class="org.springframework.batch.core.scope.StepScope" />
+	
+	<bean id="jobLauncher"  class="com.bbva.elara.batch.launcher.SimpleJobLauncherBean">
+		<property name="job" ref="EIPIJ005-01-ES" />
+		<property name="batchLauncher" ref="batchLauncher" />
+		<property name="defaultIncrementer" ref="defaultIncrementer" />		
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- ******START DATABASE CONFIGURATION******* -->
+	<bean id="connector" factory-bean="applicationConfigurationServiceFactory"
+		  factory-method="getApplicationConfigurationService">
+		<constructor-arg index="0" ref="bundleContext" />
+	</bean>
+
+
+	<bean id="jndiDatasource" class="org.springframework.jdbc.datasource.UserCredentialsDataSourceAdapter">
+		<property name="targetDataSource" ref="myTargetDataSource" />
+		<property name="username" value="#{connector.getProperty('database.username')}" />
+		<property name="password" value="#{connector.getProperty('database.passw')}" />
+	</bean>
+
+	<bean id="myTargetDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="#{applicationConfigurationService.getProperty('database.db1.jndi.url')}" />
+		<property name="lookupOnStartup" value="false"/>
+		<property name="cache"  value="true"/>
+		<property name="expectedType" value="javax.sql.DataSource"></property>
+	</bean>
+
+	<!-- *****END DATABASE CONFIGURATION****** -->
+
+
+
+
+
+	<!-- end database configuracion -->
+
+<!--	<bean id="playerFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+		<property name="resource" value="classpath:data/footballjob/input/${player.file.name}" />
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+						<property name="names" value="ID,lastName,firstName,position,birthYear,debutYear" />
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="com.bbva.eipi.batch.mappers.PlayerFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+	</bean>-->
+
+	<bean id="deleteTasklet" class="com.bbva.eipi.batch.services.Delete">
+		<property name="playerDao">
+			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+				<property name="dataSource" ref="jndiDatasource" />
+			</bean>
+		</property>
+	</bean>
+
+
+
+	<!--<bean id="playerFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+		<property name="resource" value="classpath:data/footballjob/input/${player.file.name}" />
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+						<property name="delimiter" value="," />
+						&lt;!&ndash; Include only the columns you need (indices) &ndash;&gt;
+						<property name="includedFields">
+							<list>
+								<value>0</value> &lt;!&ndash; ID column index &ndash;&gt;
+								<value>1</value> &lt;!&ndash; lastName column index &ndash;&gt;
+								<value>2</value> &lt;!&ndash; firstName column index &ndash;&gt;
+								<value>3</value> &lt;!&ndash; position column index &ndash;&gt;
+								<value>4</value> &lt;!&ndash; birthYear column index &ndash;&gt;
+								<value>5</value> &lt;!&ndash; debutYear column index &ndash;&gt;
+								<value>6</value>
+							</list>
+						</property>
+						&lt;!&ndash; Map the included fields to the Player DTO properties &ndash;&gt;
+						<property name="names">
+							<list>
+								<value>ID</value>
+								<value>lastName</value>
+								<value>firstName</value>
+								<value>position</value>
+								<value>birthYear</value>
+								<value>debutYear</value>
+								<value>iban</value>
+							</list>
+						</property>
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="com.bbva.eipi.batch.mappers.PlayerFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+	</bean>-->
+
+	<bean id="playerFileResource" class="org.springframework.core.io.ClassPathResource">
+		<constructor-arg value="data/footballjob/input/player-small1.csv"/>
+	</bean>
+
+	<bean id="playerFileItemReader" class="com.bbva.eipi.batch.services.PlayerItemReader" scope="step">
+		<property name="resource" ref="playerFileResource"/>
+	</bean>
+	<!--D:\apx\workspace\TEST\EIPI\artifact\jobs\EIPIJ005-01-ES\src\main\resources\data\footballjob\input\player-small1.csv -->
+
+	<bean id="playerWriter" class="com.bbva.eipi.batch.services.PlayerItemWriter">
+		<property name="playerDao">
+			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+				<property name="dataSource" ref="jndiDatasource" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="playerProcess" class="com.bbva.eipi.batch.services.PlayerItemProcess">
+		<property name="playerDao">
+			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+				<property name="dataSource" ref="jndiDatasource" />
+			</bean>
+		</property>
+	</bean>
+
+
+	<!--step 2 playerSelect -->
+
+	<bean id="playerDaoo" class="com.bbva.eipi.batch.repository.PlayerDao">
+		<property name="dataSource" ref="jndiDatasource" />
+	</bean>
+
+	<bean id="playerSelectDB" class="org.springframework.batch.item.database.JdbcCursorItemReader">
+		<property name="dataSource" ref="jndiDatasource" />
+		<property name="sql" value="SELECT player_id, last_name, first_name, iban, pos, year_of_birth, year_drafted FROM PLAYERS" />
+		<property name="rowMapper">
+			<bean class="com.bbva.eipi.batch.mappers.PlayerSelectMapper" />
+		</property>
+	</bean>
+
+
+
+	<bean id="playerItemProcessDB" class="com.bbva.eipi.batch.services.PlayerItemProcessDB">
+		<property name="playerDao" ref="playerDaoo"/>
+	</bean>
+
+
+
+	<bean id="playerItemWriterDB" class="com.bbva.eipi.batch.services.PlayerItemWriterDB">
+		<property name="playerDao">
+			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+				<property name="dataSource" ref="jndiDatasource" />
+			</bean>
+		</property>
+	</bean>
+
+
+
+
+
+
+
+
+
+
+
+
+	<bean id="footballProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<value>
+				player.file.name=player-small1.csv
+			</value>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="order" value="1" />
+	</bean>
+
+
+
+
+</beans>
+
+
+		<!--Para cada registro de T_EIPI_PAYMENT_TO_CHECK, si sus
+        datos se encuentran en T_EIPI_PROPERTY_TAX o T_EIPI_EAT_TAX, y no se encuentra ya en
+        T_EIPI_PAYMENT_DIRECT_DEBIT_HISTORY, insertar en
+        T_EIPI_PAYMENT_DIRECT_DEBIT_HISTORY y eliminar de T_EIPI_PAYMENT_TO_CHECK.
+        Si se encontraba en T_EIPI_PAYMENT_DIRECT_DEBIT_HISTORY, generar correo de alerta de
+        duplicado.
+        if PlayerDTO find in the list accounts and not in
+        stringListPlayer_PRO so insert it in PLAYER_PRO table and delete it from Player table.
+        ,else if find in PLAYER_PRO print "will sent email duplicate"
+        -->

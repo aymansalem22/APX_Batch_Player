@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans" xmlns="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+  <job id="EIPIJ005-01-ES" incrementer="defaultIncrementer" job-repository="jobRepository">
+  	<description>player</description>
+    <listeners>
+      <listener ref="interceptorJobExecutionListener"/>
+    </listeners>
+
+    <step id="deleteStep" next="playerload">
+      <tasklet ref="deleteTasklet"/>
+    </step>
+
+    <step id="playerload" next="playerSelect">
+      <tasklet>
+        <chunk reader="playerFileItemReader" processor="playerProcess" writer="playerWriter"
+               commit-interval="1" />
+      </tasklet>
+    </step>
+
+
+
+    <step id="playerSelect" >
+      <tasklet>
+        <chunk reader="playerSelectDB"  processor="playerItemProcessDB"  writer="playerItemWriterDB"
+               commit-interval="1" />
+      </tasklet>
+    </step>
+
+  </job>
+</beans:beans>
