@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<import resource="classpath:/META-INF/spring/data-source-context.xml" />
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="dataSource" />
+	</bean>
+
+	<bean id="jobLauncher"
+		  class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+
+	</bean>
+
+	<bean id="jobRepository"
+		  class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="databaseType" value="hsql" />
+	</bean>
+
+	<bean id="simpleJob" class="org.springframework.batch.core.job.SimpleJob"
+		  abstract="true">
+		<property name="jobRepository" ref="jobRepository" />
+		<property name="restartable" value="true" />
+	</bean>
+
+	<bean id="taskletStep" class="org.springframework.batch.core.step.tasklet.TaskletStep"
+		  abstract="true">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="jobRepository" ref="jobRepository" />
+		<property name="allowStartIfComplete" value="true" />
+	</bean>
+
+	<bean id="itemOrientedStep"
+		  class="org.springframework.batch.core.step.factory.FaultTolerantStepFactoryBean"
+		  abstract="true">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+	<bean id="customEditorConfigurer"
+		  class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+		<property name="customEditors">
+			<map>
+				<entry key="int[]" value="org.springframework.batch.support.IntArrayPropertyEditor" />
+				<entry key="org.springframework.batch.item.file.transform.Range[]"
+					   value="org.springframework.batch.item.file.transform.RangeArrayPropertyEditor" />
+			</map>
+		</property>
+		<property name="propertyEditorRegistrars">
+			<bean
+					class="org.springframework.batch.support.DefaultPropertyEditorRegistrar">
+				<property name="customEditors">
+					<map>
+						<entry key="java.util.Date">
+							<bean
+									class="org.springframework.beans.propertyeditors.CustomDateEditor">
+								<constructor-arg>
+									<bean class="java.text.SimpleDateFormat">
+										<constructor-arg value="yyyyMMdd" />
+									</bean>
+								</constructor-arg>
+								<constructor-arg value="false" />
+							</bean>
+						</entry>
+					</map>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+
+
+	<bean id="deleteTasklet" class="com.bbva.eipi.batch.services.Delete">
+		<property name="playerDao">
+			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+				<property name="dataSource" ref="dataSource" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="playerFileResource" class="org.springframework.core.io.ClassPathResource">
+		<constructor-arg value="data/footballjob/input/player-small1.csv"/>
+	</bean>
+
+	<bean id="playerFileItemReader" class="com.bbva.eipi.batch.services.PlayerItemReader" scope="step">
+		<property name="resource" ref="playerFileResource"/>
+	</bean>
+	<!--D:\apx\workspace\TEST\EIPI\artifact\jobs\EIPIJ005-01-ES\src\main\resources\data\footballjob\input\player-small1.csv -->
+
+	<bean id="playerWriter" class="com.bbva.eipi.batch.services.PlayerItemWriter">
+		<property name="playerDao" ref="playerDao" />
+	</bean>
+
+	<bean id="playerProcess" class="com.bbva.eipi.batch.services.PlayerItemProcess">
+		<property name="playerDao" ref="playerDao" />
+	</bean>
+
+	<bean id="playerSelectDB" class="org.springframework.batch.item.database.JdbcCursorItemReader">
+		<property name="dataSource" ref="dataSource" />
+		<property name="sql" value="SELECT player_id, last_name, first_name, iban, pos, year_of_birth, year_drafted FROM PLAYERS" />
+		<property name="rowMapper">
+			<bean class="com.bbva.eipi.batch.mappers.PlayerSelectMapper" />
+		</property>
+	</bean>
+
+
+
+	<bean id="playerItemProcessDB" class="com.bbva.eipi.batch.services.PlayerItemProcessDB">
+		<property name="playerDao" ref="playerDao" />
+	<!--	<property name="mailSender" ref="mailSender"/>-->
+	</bean>
+
+	<bean name="playerDao"
+		  class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+
+	<bean id="playerItemWriterDB" class="com.bbva.eipi.batch.services.PlayerItemWriterDB">
+		<property name="playerDao" ref="playerDao" />
+	</bean>
+
+	<!-- Email configuration -->
+<!--	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com"/>
+		<property name="port" value="587"/>
+		<property name="username" value="#{applicationConfigurationService.getProperty('database.db1.jndi.mail')}"/>
+		<property name="password" value="#{applicationConfigurationService.getProperty('database.db1.jndi.password')}"/>
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.ssl.protocols">TLSv1.2</prop>
+				&lt;!&ndash;	<prop key="mail.debug">true</prop>&ndash;&gt; &lt;!&ndash; Optional: Enable debug to see detailed logs &ndash;&gt;
+			</props>
+		</property>
+	</bean>-->
+
+	<bean id="footballProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<value>
+				player.file.name=player-small1.csv
+			</value>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="order" value="1" />
+	</bean>
+
+</beans>

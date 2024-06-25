@@ -18,14 +18,17 @@ import java.util.Map;
 
 
 public class JdbcPlayerDao implements PlayerDao {
+
+
+
     public static final String INSERT_PLAYER =
             "INSERT INTO PLAYERS (player_id, last_name, first_name, iban, pos, year_of_birth, year_drafted) " +
                     "VALUES (:id, :lastName, :firstName, :iban, :position, :birthYear, :debutYear);";
 
 
     public static final String INSERT_PLAYER_PRO =
-            "INSERT INTO PLAYER_PRO (PLAYER_PRO_id, last_name, first_name, iban, pos, year_of_birth, year_drafted) " +
-                    "VALUES (:id, :lastName, :firstName, :iban, :position, :birthYear, :debutYear);";
+            "INSERT INTO PLAYER_PRO (PLAYER_PRO_id, last_name, first_name, iban, pos, year_of_birth, year_drafted, text) " +
+                    "VALUES (:id, :lastName, :firstName, :iban, :position, :birthYear, :debutYear, :text);";
 
     public static final String DELETE_PLAYER =
             "DELETE FROM PLAYERS WHERE player_id = :id";
@@ -60,6 +63,7 @@ public class JdbcPlayerDao implements PlayerDao {
         if (namedParameterJdbcTemplate == null) {
             System.out.println("namedParameterJdbcTemplate is null in savePlayerPRO");
         }
+
         int a= namedParameterJdbcTemplate.update(INSERT_PLAYER_PRO, new BeanPropertySqlParameterSource(player));
         System.out.println("savePlayerPro "+a);
     }
@@ -79,14 +83,15 @@ public class JdbcPlayerDao implements PlayerDao {
             System.out.println("namedParameterJdbcTemplate is null in deletePlayer");
         }
         MapSqlParameterSource parameters = new MapSqlParameterSource();
-        namedParameterJdbcTemplate.update(DELETE_PLAYER_TABLE, parameters);
-        namedParameterJdbcTemplate.update(DELETE_Manager, parameters);
-        namedParameterJdbcTemplate.update(DELETE_EMPLOYEE, parameters);
-        namedParameterJdbcTemplate.update(DELETE_PLAYER_PRO_TABLE, parameters);
+       // namedParameterJdbcTemplate.update(DELETE_PLAYER_TABLE, parameters);
+       // namedParameterJdbcTemplate.update(DELETE_Manager, parameters);
+     //   namedParameterJdbcTemplate.update(DELETE_EMPLOYEE, parameters);
+    //    namedParameterJdbcTemplate.update(DELETE_PLAYER_PRO_TABLE, parameters);
       // batchInsertPlayers();
-        batchInsertEmployees();
-        batchInsertPlayersPro();
+       // batchInsertEmployees();
+       // batchInsertPlayersPro();
     }
+
 
 
 
@@ -119,7 +124,6 @@ public class JdbcPlayerDao implements PlayerDao {
 
         return accounts;
     }
-
 
 
     public void batchInsertPlayers() {
@@ -171,7 +175,7 @@ public class JdbcPlayerDao implements PlayerDao {
                 .addValue("id", "E001")
                 .addValue("lastName", "Brown")
                 .addValue("firstName", "James")
-                .addValue("iban", "GB82WEST12345698765436")
+                .addValue("iban", "GB82WEST12345698765448")
                 .addValue("position", "Manager")
                 .addValue("birthYear", 1985)
                 .addValue("debutYear", 2007);
@@ -180,7 +184,7 @@ public class JdbcPlayerDao implements PlayerDao {
                 .addValue("id", "E002")
                 .addValue("lastName", "Williams")
                 .addValue("firstName", "Chris")
-                .addValue("iban", "GB82WEST12345698765437")
+                .addValue("iban", "GB82WEST12345698765487")
                 .addValue("position", "Developer")
                 .addValue("birthYear", 1992)
                 .addValue("debutYear", 2014);
@@ -198,7 +202,7 @@ public class JdbcPlayerDao implements PlayerDao {
                 .addValue("id", "E004")
                 .addValue("lastName", "Davis")
                 .addValue("firstName", "Steven")
-                .addValue("iban", "GB82WEST12345698765432")
+                .addValue("iban", "GB82WEST12345698765436")
                 .addValue("position", "Consultant")
                 .addValue("birthYear", 1988)
                 .addValue("debutYear", 2010);
@@ -214,7 +218,7 @@ public class JdbcPlayerDao implements PlayerDao {
                 .addValue("id", "P001")
                 .addValue("lastName", "Smith")
                 .addValue("firstName", "John")
-                .addValue("iban", "GB82WEST12345698765432")
+                .addValue("iban", "GB82WEST12345698765436")
                 .addValue("position", "Guard")
                 .addValue("birthYear", 1990)
                 .addValue("debutYear", 2012);
@@ -265,16 +269,17 @@ INSERT INTO players (id, lastName, firstName, iban, position, birthYear, debutYe
 ('M003', 'Williams', 'Chris', 'GB82WEST12345698765434', 'Center', 1991, 2011),
 ('M004', 'Brown', 'David', 'GB82WEST12345698765435', 'Guard', 1993, 2013);
 
-INSERT INTO employees (id, lastName, firstName, iban, position, birthYear, debutYear) VALUES
+
+INSERT INTO employees (EMPLOYEE_ID , last_Name, first_Name, iban, pos, YEAR_OF_BIRTH , YEAR_DRAFTED) VALUES
 ('E001', 'Brown', 'James', 'GB82WEST12345698765436', 'Manager', 1985, 2007),
-('E002', 'Williams', 'Chris', 'GB82WEST12345698765437', 'Developer', 1992, 2014),
+('E002', 'Williams', 'Chris', 'GB82WEST12345698765448', 'Developer', 1992, 2014),
 ('E003', 'Johnson', 'Michael', 'GB82WEST12345698765434', 'Analyst', 1990, 2012),
-('E004', 'Davis', 'Steven', 'GB82WEST12345698765432', 'Consultant', 1988, 2010);
+('E004', 'Davis', 'Steven', 'GB82WEST12345698765487', 'Consultant', 1988, 2010);
 
-
-INSERT INTO players_pro (id, lastName, firstName, iban, position, birthYear, debutYear) VALUES
-('P001', 'Smith', 'John', 'GB82WEST12345698765432', 'Guard', 1990, 2012),
+INSERT INTO PLAYER_PRO (PLAYER_PRO_ID , LAST_NAME , FIRST_NAME , iban, pos, YEAR_OF_BIRTH , YEAR_DRAFTED ) VALUES
+('P001', 'Smith', 'John', 'GB82WEST12345698765436', 'Guard', 1990, 2012),
 ('P002', 'Johnson', 'Mike', 'GB82WEST12345698765457', 'Forward', 1988, 2010),
 ('P003', 'Williams', 'Chris', 'GB82WEST12345698765458', 'Center', 1991, 2011),
 ('P004', 'Brown', 'David', 'GB82WEST12345698765459', 'Guard', 1993, 2013);
+
  */

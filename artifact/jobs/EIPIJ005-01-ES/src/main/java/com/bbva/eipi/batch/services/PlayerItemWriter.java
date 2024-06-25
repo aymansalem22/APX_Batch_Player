@@ -20,6 +20,7 @@ public class PlayerItemWriter implements ItemWriter<PlayerDTO>, StepExecutionLis
 
         for(PlayerDTO player: players){
             playerDao.savePlayer(player);
+            System.out.println("first step Database...."+player);
         }
     }
 

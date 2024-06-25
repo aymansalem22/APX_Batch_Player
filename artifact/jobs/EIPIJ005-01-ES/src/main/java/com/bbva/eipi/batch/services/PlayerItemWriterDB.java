@@ -17,7 +17,10 @@ public class PlayerItemWriterDB implements ItemWriter<PlayerProDTO> {
     public void write(List<? extends PlayerProDTO> playerProDTO) throws Exception {
         for(PlayerProDTO player: playerProDTO){
             playerDao.savePlayerPro(player);
-
         }
+    }
+
+    public void setPlayerDao(PlayerDao playerDao) {
+        this.playerDao = playerDao;
     }
 }

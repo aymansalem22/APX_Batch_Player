@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 		
 	<context:annotation-config/>
-	
+
 	<bean id="applicationConfigurationServiceFactory" class="com.bbva.eipi.batch.util.ConfigurationFactoryMock" />
 	
 	<bean id="bundleContext" class="com.bbva.eipi.batch.util.MockBundleContext">

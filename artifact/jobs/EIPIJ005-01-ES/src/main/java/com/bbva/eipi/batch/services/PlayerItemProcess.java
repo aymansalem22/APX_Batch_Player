@@ -16,21 +16,15 @@ import java.util.List;
 
 public class PlayerItemProcess implements ItemProcessor<PlayerDTO,PlayerDTO>, StepExecutionListener {
 
-    public PlayerItemProcess() {
-    }
+
 
     PlayerDao playerDao;
     List<String> data = Arrays.asList("GB82WEST12345698765469", "GB82WEST12345698765448");
-    List<String> accounts;
-    List<String> arrayAccounts;
+    List<String> accounts = new ArrayList<>();
+    List<String> arrayAccounts=new ArrayList<>();
 
-    public PlayerItemProcess(PlayerDao playerDao) {
-        this.playerDao = playerDao;
-        this.accounts = playerDao.getAccounts();
-        this.arrayAccounts = new ArrayList<>();
-        this.arrayAccounts.addAll(accounts);
-        this.arrayAccounts.addAll(data);
-    }
+
+
 
     @Override
     public PlayerDTO process(PlayerDTO player) throws Exception {
@@ -42,11 +36,25 @@ public class PlayerItemProcess implements ItemProcessor<PlayerDTO,PlayerDTO>, St
 
     public void setPlayerDao(PlayerDao playerDao) {
         this.playerDao = playerDao;
+      //  initializeLists();
+
+    }
+
+    private void initializeLists() {
+        if (playerDao != null) {
+            accounts = playerDao.getAccounts();
+            arrayAccounts.addAll(accounts);
+            arrayAccounts.addAll(data);
+        }
     }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-
+        if (playerDao != null) {
+            accounts = playerDao.getAccounts();
+            arrayAccounts.addAll(accounts);
+            arrayAccounts.addAll(data);
+        }
     }
 
     @Override

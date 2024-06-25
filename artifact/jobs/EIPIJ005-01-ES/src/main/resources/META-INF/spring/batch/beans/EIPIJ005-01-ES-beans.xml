@@ -131,27 +131,17 @@
 	<!--D:\apx\workspace\TEST\EIPI\artifact\jobs\EIPIJ005-01-ES\src\main\resources\data\footballjob\input\player-small1.csv -->
 
 	<bean id="playerWriter" class="com.bbva.eipi.batch.services.PlayerItemWriter">
-		<property name="playerDao">
-			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
-				<property name="dataSource" ref="jndiDatasource" />
-			</bean>
-		</property>
+		<property name="playerDao" ref="playerDao" />
 	</bean>
 
 	<bean id="playerProcess" class="com.bbva.eipi.batch.services.PlayerItemProcess">
-		<property name="playerDao">
-			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
-				<property name="dataSource" ref="jndiDatasource" />
-			</bean>
-		</property>
+		<property name="playerDao" ref="playerDao" />
 	</bean>
 
 
 	<!--step 2 playerSelect -->
 
-	<bean id="playerDaoo" class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
-		<property name="dataSource" ref="jndiDatasource" />
-	</bean>
+
 
 	<bean id="playerSelectDB" class="org.springframework.batch.item.database.JdbcCursorItemReader">
 		<property name="dataSource" ref="jndiDatasource" />
@@ -164,20 +154,51 @@
 
 
 	<bean id="playerItemProcessDB" class="com.bbva.eipi.batch.services.PlayerItemProcessDB">
-		<property name="playerDao" ref="playerDaoo"/>
+		<property name="playerDao" ref="playerDao" />
+		<property name="mailSender" ref="mailSender"/>
 	</bean>
 
+	<bean name="playerDao"
+		  class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
+		<property name="dataSource" ref="jndiDatasource" />
+	</bean>
 
 
 	<bean id="playerItemWriterDB" class="com.bbva.eipi.batch.services.PlayerItemWriterDB">
-		<property name="playerDao">
-			<bean class="com.bbva.eipi.batch.repository.imp.JdbcPlayerDao">
-				<property name="dataSource" ref="jndiDatasource" />
-			</bean>
-		</property>
+		<property name="playerDao" ref="playerDao" />
 	</bean>
 
 
+
+<!--//	 Email configuration
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com"/>
+		<property name="port" value="25"/>
+		<property name="username" value="#{applicationConfigurationService.getProperty('database.db1.jndi.mail')}"/>
+		<property name="password" value="#{applicationConfigurationService.getProperty('database.db1.jndi.password')}"/>
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+			</props>
+		</property>
+	</bean>-->
+
+	<!-- Email configuration -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com"/>
+		<property name="port" value="587"/>
+		<property name="username" value="#{applicationConfigurationService.getProperty('database.db1.jndi.mail')}"/>
+		<property name="password" value="#{applicationConfigurationService.getProperty('database.db1.jndi.password')}"/>
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.ssl.protocols">TLSv1.2</prop>
+			<!--	<prop key="mail.debug">true</prop>--> <!-- Optional: Enable debug to see detailed logs -->
+			</props>
+		</property>
+	</bean>
 
 
 
